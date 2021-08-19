@@ -1,8 +1,8 @@
 import json
 import urllib.request
 from math import log10
-from time import time
-
+from time import time, sleep
+import codeforces_api
 import tabulate
 
 
@@ -48,13 +48,15 @@ def get_rating(handle):
             to_write = open('cached_ratings', 'w')
             to_write.write(json.dumps(cached_ratings))
             to_write.close()
-            print(handle, res['result'][0]['rating'])
+            # print(handle, res['result'][0]['rating'])
             return res['result'][0]['rating']
         else:
-            print("user " + handle + " error")
+            print("user", handle, " error", res['status'])
             return 0
     except Exception as e:
-        print(e)
+        print("user", handle, " error", e)
+        # print(e)
+        return 0
 
 
 def get_number_of_submissions(handle):
@@ -78,13 +80,14 @@ def get_number_of_submissions(handle):
             to_write = open('cached_status', 'w')
             to_write.write(json.dumps(cached_status))
             to_write.close()
-            print(handle + " accepted ", cnt)
+            print(handle, "accepted", cnt)
             return cnt
         else:
-            print("user " + handle + " error")
+            print("user", handle, " error", e)
             return 0
     except Exception as e:
-        print(e)
+        print("user", handle, " error", e)
+        return 0
 
 
 def get_team_rating(team_members):
@@ -108,5 +111,9 @@ for team in teams:
         team[1] = team[1][0:18] + "..."
     team.append(get_team_rating([team[2], team[3], team[4]]))
     team.append(sum(get_number_of_submissions(member) for member in team[2:5]))
+    for i in range(2, 5):
+        member = team[i]
+        team[i] = member + " (" + str(get_rating(member)) + ")[" + str(get_number_of_submissions(member)) + "]"
 teams.sort(key=lambda t: t[5], reverse=True)
+
 print(tabulate.tabulate(teams, showindex=True))
